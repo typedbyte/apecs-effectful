@@ -34,6 +34,7 @@ module Apecs.Effectful
   , cmap
   , cmapM
   , cmapM_
+  , cmapIf
   , cfold
   , cfoldM
   , cfoldM_
@@ -69,6 +70,7 @@ import Apecs hiding
   , cmap
   , cmapM
   , cmapM_
+  , cmapIf
   , exists
   , destroy
   , get
@@ -83,6 +85,7 @@ import Apecs hiding
 
 -- base
 import Data.Kind (Type)
+import Control.Monad (when)
 
 -- effectful-core
 import Effectful                 (Eff, Dispatch(Static), DispatchOf, Effect, IOE, (:>))
@@ -211,6 +214,21 @@ cmapM_ f = do
   U.forM_ l $ \e ->
     unsafeEff_ (Apecs.explGet s e) >>= f
 {-# INLINE cmapM_ #-}
+
+-- | Conditional @cmap@, that first tests whether the argument satisfies some property.
+--   The entity needs to have both a cx and cp component.
+cmapIf :: forall w cx cy cp es. (ECS w :> es, Get w cx, Members w cx, Get w cp, Set w cy) => (cp -> Bool) -> (cx -> cy) -> Eff es ()
+cmapIf cond f = do
+  sp <- toEff @w (Apecs.getStore @w @IO @cp)
+  sx <- toEff @w (Apecs.getStore @w @IO @cx)
+  sy <- toEff @w (Apecs.getStore @w @IO @cy)
+  sl <- unsafeEff_ $ Apecs.explMembers (sx,sp)
+  U.forM_ sl $ \ e -> do
+    p <- unsafeEff_ $ Apecs.explGet sp e
+    when (cond p) $ do
+      x <- unsafeEff_ $ Apecs.explGet sx e
+      unsafeEff_ $ Apecs.explSet sy e (f x)
+{-# INLINE cmapIf #-}
 
 -- | Fold over the components @c@ of the game world.
 cfold :: forall w c a es. (ECS w :> es, Members w c, Get w c) => (a -> c -> a) -> a -> Eff es a
