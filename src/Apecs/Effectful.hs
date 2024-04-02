@@ -15,8 +15,8 @@
 module Apecs.Effectful
   ( -- * Effectful Adaptation
     ECS
-  , runECS
   , toEff
+  , runECS
   , runGC
   , Get
   , Set
@@ -118,6 +118,7 @@ runECS worldInit m = do
   w <- unsafeEff_ worldInit
   evalStaticRep (ECS w) m
 
+-- | Converts an apecs-based 'System' to 'Eff'.
 toEff :: ECS w :> es => System w a -> Eff es a
 toEff system = do
   ECS w <- getStaticRep
