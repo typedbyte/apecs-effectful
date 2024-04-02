@@ -16,6 +16,7 @@ module Apecs.Effectful
   ( -- * Effectful Adaptation
     ECS
   , runECS
+  , toEff
   , runGC
   , Get
   , Set
