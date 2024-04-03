@@ -85,8 +85,8 @@ import Apecs hiding
   )
 
 -- base
-import Data.Kind (Type)
 import Control.Monad (when)
+import Data.Kind     (Type)
 
 -- effectful-core
 import Effectful                 (Eff, Dispatch(Static), DispatchOf, Effect, IOE, (:>))
@@ -218,7 +218,7 @@ cmapM_ f = do
 {-# INLINE cmapM_ #-}
 
 -- | Conditional @cmap@, that first tests whether the argument satisfies some property.
---   The entity needs to have both a cx and cp component.
+--   The entity needs to have both a @cx@ and @cp@ component.
 cmapIf :: forall w cx cy cp es. (ECS w :> es, Get w cx, Members w cx, Get w cp, Set w cy) => (cp -> Bool) -> (cx -> cy) -> Eff es ()
 cmapIf cond f = do
   sp <- toEff @w (Apecs.getStore @w @IO @cp)
